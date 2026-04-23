@@ -23,7 +23,7 @@ static string GetHtmlPage()
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1512453645462-86d83e0e2e19?w=1600&h=900&fit=crop') center/cover no-repeat fixed;
+            background: #2D3E1F;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -71,3 +71,4 @@ static string GetHtmlPage()
 </body>
 </html>";
 }
+
