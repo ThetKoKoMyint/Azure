@@ -23,7 +23,7 @@ static string GetHtmlPage()
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1512453645462-86d83e0e2e19?w=1600&h=900&fit=crop') center/cover no-repeat fixed;
             min-height: 100vh;
             display: flex;
             justify-content: center;
