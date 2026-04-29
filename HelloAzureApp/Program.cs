@@ -62,13 +62,31 @@ static string GetHtmlPage()
         }
     </style>
 </head>
-<body>
+<body onload='startClock()'>
     <div class='container'>
         <h1>Hello Continuum MFO</h1>
         <p>Welcome to your simple web page built with ASP.NET Core</p>
         <span class='badge'>ASP.NET Core Application</span>
+
+        
+<!-- Live Clock -->
+        <div class='clock' id='clock'></div>
     </div>
+    
+<script>
+        function startClock() {
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('clock').innerText =
+                    now.toLocaleTimeString();
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+    </script>
+
 </body>
 </html>";
 }
+
 
