@@ -6,38 +6,23 @@ using Azure.Storage.Blobs.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton(_ =>
-{
-    var configuration = builder.Configuration;
-    var connectionString = configuration.GetConnectionString("BlobStorage")
-        ?? configuration["BlobStorage:ConnectionString"];
-
-    if (string.IsNullOrWhiteSpace(connectionString))
-    {
-        throw new InvalidOperationException(
-            "Blob Storage is not configured. Add ConnectionStrings__BlobStorage or BlobStorage__ConnectionString in Azure App Service Configuration.");
-    }
-
-    var containerName = configuration["BlobStorage:ContainerName"];
-    if (string.IsNullOrWhiteSpace(containerName))
-    {
-        throw new InvalidOperationException(
-            "Blob Storage container is not configured. Add BlobStorage__ContainerName in Azure App Service Configuration.");
-    }
-
-    return new BlobContainerClient(connectionString, containerName);
-});
-
 var app = builder.Build();
 
-app.MapGet("/", async (BlobContainerClient containerClient) =>
+app.MapGet("/", async (IConfiguration configuration) =>
 {
-    var model = await GetBlobStatusAsync(containerClient);
+    var model = await GetBlobStatusAsync(configuration);
     return Results.Text(GetHtmlPage(model), "text/html");
 });
 
-app.MapPost("/upload-test", async (BlobContainerClient containerClient) =>
+app.MapPost("/upload-test", async (IConfiguration configuration) =>
 {
+    var blobConfig = GetBlobConfiguration(configuration);
+    if (!blobConfig.IsConfigured)
+    {
+        return Results.Redirect("/");
+    }
+
+    var containerClient = new BlobContainerClient(blobConfig.ConnectionString, blobConfig.ContainerName);
     await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
 
     var blobName = $"webapp-test-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}.txt";
@@ -52,8 +37,21 @@ app.MapPost("/upload-test", async (BlobContainerClient containerClient) =>
 
 app.Run();
 
-static async Task<BlobStatusModel> GetBlobStatusAsync(BlobContainerClient containerClient)
+static async Task<BlobStatusModel> GetBlobStatusAsync(IConfiguration configuration)
 {
+    var blobConfig = GetBlobConfiguration(configuration);
+    if (!blobConfig.IsConfigured)
+    {
+        return new BlobStatusModel(
+            false,
+            "Not configured",
+            blobConfig.ContainerName,
+            [],
+            blobConfig.ErrorMessage);
+    }
+
+    var containerClient = new BlobContainerClient(blobConfig.ConnectionString, blobConfig.ContainerName);
+
     try
     {
         await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
@@ -76,6 +74,31 @@ static async Task<BlobStatusModel> GetBlobStatusAsync(BlobContainerClient contai
     {
         return new BlobStatusModel(false, containerClient.AccountName, containerClient.Name, [], ex.Message);
     }
+}
+
+static BlobConfiguration GetBlobConfiguration(IConfiguration configuration)
+{
+    var connectionString = configuration.GetConnectionString("BlobStorage")
+        ?? configuration["BlobStorage:ConnectionString"];
+    var containerName = configuration["BlobStorage:ContainerName"];
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        return new BlobConfiguration(
+            "",
+            string.IsNullOrWhiteSpace(containerName) ? "Not configured" : containerName,
+            "Missing setting: ConnectionStrings__BlobStorage. Add your Azure Storage connection string in Azure App Service Configuration.");
+    }
+
+    if (string.IsNullOrWhiteSpace(containerName))
+    {
+        return new BlobConfiguration(
+            connectionString,
+            "Not configured",
+            "Missing setting: BlobStorage__ContainerName. Add your blob container name in Azure App Service Configuration.");
+    }
+
+    return new BlobConfiguration(connectionString, containerName, null);
 }
 
 static string GetHtmlPage(BlobStatusModel model)
@@ -233,3 +256,11 @@ record BlobStatusModel(
     string ContainerName,
     IReadOnlyList<string> BlobNames,
     string? ErrorMessage);
+
+record BlobConfiguration(
+    string ConnectionString,
+    string ContainerName,
+    string? ErrorMessage)
+{
+    public bool IsConfigured => string.IsNullOrWhiteSpace(ErrorMessage);
+}
