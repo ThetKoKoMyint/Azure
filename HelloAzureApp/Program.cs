@@ -39,6 +39,7 @@ static string GetHtmlPage(List<string> blobs)
         : string.Join("", blobs.Select(b => $"<li>{b}</li>"));
 
     return $@"
+
 <!DOCTYPE html>
 <html lang='en'>
 <head>
@@ -92,6 +93,9 @@ static string GetHtmlPage(List<string> blobs)
             font-size: 0.9em;
         }
     </style>
+
+
+
 </head>
 <body onload='startClock()'>
     <div class='container'>
@@ -120,6 +124,11 @@ static string GetHtmlPage(List<string> blobs)
         }
     </script>
 
+
+<form method='post' enctype='multipart/form-data' action='/upload'>
+  <input type='file' name='file' />
+  <button type='submit'>Upload</button>
+</form>
 </body>
 </html>";
 }
