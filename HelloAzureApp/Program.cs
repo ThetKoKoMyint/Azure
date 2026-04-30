@@ -1,72 +1,95 @@
-using Azure.Identity;
-using Azure.Storage.Blobs;
-
 var builder = WebApplication.CreateBuilder(args);
-
-// Read settings
-var accountName = builder.Configuration["AzureBlobStorage:AccountName"];
-var containerName = builder.Configuration["AzureBlobStorage:ContainerName"];
-
-// Blob service using Managed Identity
-builder.Services.AddSingleton(_ =>
-    new BlobServiceClient(
-        new Uri($"https://{accountName}.blob.core.windows.net"),
-        new DefaultAzureCredential()));
-
-builder.Services.AddSingleton(sp =>
-{
-    var serviceClient = sp.GetRequiredService<BlobServiceClient>();
-    return serviceClient.GetBlobContainerClient(containerName);
-});
-
 var app = builder.Build();
 
-// Home page with blob listing
-app.MapGet("/", async (BlobContainerClient container) =>
-{
-    await container.CreateIfNotExistsAsync();
-
-    var blobNames = new List<string>();
-    await foreach (var blob in container.GetBlobsAsync())
-        blobNames.Add(blob.Name);
-
-    return Results.Text(GetHtmlPage(blobNames), "text/html");
-});
-
-// Upload endpoint
-app.MapPost("/upload", async (IFormFile file, BlobContainerClient container) =>
-{
-    if (file == null || file.Length == 0)
-        return Results.BadRequest("No file uploaded");
-
-    var blobClient = container.GetBlobClient(file.FileName);
-    await blobClient.UploadAsync(file.OpenReadStream(), overwrite: true);
-
-    return Results.Ok("File uploaded successfully");
-});
+app.MapGet("/", () => Results.Text(GetHtmlPage(), "text/html"));
 
 app.Run();
 
-static string GetHtmlPage(List<string> blobs)
+static string GetHtmlPage()
 {
-    var list = blobs.Count == 0
-        ? "<li>No blobs found</li>"
-        : string.Join("", blobs.Select(b => $"<li>{b}</li>"));
-
-    return $@"
+    return @"
 <!DOCTYPE html>
-<html>
-<body>
-<h1>Hello Continuum MFO</h1>
-<h2>Azure Blob Storage Connected ✅</h2>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Hello Continuum MFO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #2D3E1F;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 60px 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body onload='startClock()'>
+    <div class='container'>
+        <h1>Hello Continuum MFO</h1>
+        <p>Welcome to your simple web page built with ASP.NET Core</p>
+        <span class='badge'>ASP.NET Core Application</span>
 
-<h3>Uploaded Files</h3>
-<ul>{list}</ul>
+        
 
-<form method='post' enctype='multipart/form-data' action='/upload'>
-  <input type='file' name='file' />
-  <button type='submit'>Upload</button>
-</form>
+
+
+
+<!-- Live Clock -->
+        <div class='clock' id='clock'></div>
+    </div>
+    
+<script>
+        function startClock() {
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('clock').innerText =
+                    now.toLocaleTimeString();
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+    </script>
+
 </body>
 </html>";
 }
+
