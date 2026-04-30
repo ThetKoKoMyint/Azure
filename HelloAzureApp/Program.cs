@@ -69,6 +69,10 @@ static string GetHtmlPage()
         <span class='badge'>ASP.NET Core Application</span>
 
         
+
+
+
+
 <!-- Live Clock -->
         <div class='clock' id='clock'></div>
     </div>
@@ -89,22 +93,3 @@ static string GetHtmlPage()
 </html>";
 }
 
-using Azure.Storage.Blobs;
-
-var builder = WebApplication.CreateBuilder(args);
-
-var connectionString = builder.Configuration.GetConnectionString("BlobStorage");
-var containerName = builder.Configuration["AzureBlobStorage:helloworldtestnet"];
-
-builder.Services.AddSingleton(_ =>
-    new BlobServiceClient(connectionString));
-
-builder.Services.AddSingleton(sp =>
-{
-    var serviceClient = sp.GetRequiredService<BlobServiceClient>();
-    return serviceClient.GetBlobContainerClient(containerName);
-});
-
-var app = builder.Build();
-app.MapControllers();
-app.Run();
