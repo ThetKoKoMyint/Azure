@@ -89,4 +89,22 @@ static string GetHtmlPage()
 </html>";
 }
 
+using Azure.Storage.Blobs;
 
+var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("BlobStorage");
+var containerName = builder.Configuration["AzureBlobStorage:helloworldtestnet"];
+
+builder.Services.AddSingleton(_ =>
+    new BlobServiceClient(connectionString));
+
+builder.Services.AddSingleton(sp =>
+{
+    var serviceClient = sp.GetRequiredService<BlobServiceClient>();
+    return serviceClient.GetBlobContainerClient(containerName);
+});
+
+var app = builder.Build();
+app.MapControllers();
+app.Run();
