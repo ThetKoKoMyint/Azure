@@ -40,70 +40,24 @@ static string GetHtmlPage(List<string> blobs)
 
     return $@"
 
+
 <!DOCTYPE html>
-<html lang='en'>
-<head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Hello Continuum MFO</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #2D3E1F;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .container {
-            background: white;
-            padding: 60px 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            max-width: 500px;
-        }
-        
-        h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-        
-        p {
-            color: #666;
-            font-size: 1.1em;
-            line-height: 1.6;
-        }
-        
-        .badge {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            margin-top: 20px;
-            font-size: 0.9em;
-        }
-    </style>
+<html>
+<body>
+<h1>Hello Continuum MFO</h1>
+<h2>Azure Blob Storage Connected ✅</h2>
 
-
-
-
+<h3>Uploaded Files</h3>
+<ul>{list}</ul>
 
 <form method='post' enctype='multipart/form-data' action='/upload'>
   <input type='file' name='file' />
   <button type='submit'>Upload</button>
+
 </form>
 </body>
 </html>";
 }
+
 
 
